@@ -1,15 +1,10 @@
 #!/bin/bash
 
-# You can change theses variables to fit your needs
-databaseUser='php'
-databasePass='password'
-databaseName='database_name'
-uploadsPath='/var/www/projet/shared/web/uploads/' # Do not remove the trailing slash
-backupFolder='/home/admin/backups/' # Do not remove the trailing slash
-projectName='project_name'
-
 # You should not change these variables
 logrorateFolder='/etc/logrotate.d/'
+
+# Load the backup configuration file
+source backup.conf
 
 # Prepare new directories for the backup
 mkdir -p ${backupFolder}

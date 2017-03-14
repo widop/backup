@@ -1,0 +1,4 @@
+{
+  "name": "widop/backup",
+  "description": "Database and files backup script with logrotate and rclone"
+}

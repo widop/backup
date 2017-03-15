@@ -2,7 +2,6 @@
 
 # You should not change these variables
 logrorateFolder="/etc/logrotate.d/"
-binFolder="../../../bin/"
 
 echo "Project name : "
 read projectName
@@ -40,6 +39,16 @@ done
 echo "Backup folder (don't forget the trailing slash) : "
 read backupFolder;
 
+cat > ../backup.conf << EOL
+databaseType=${databaseType} # mysql|mongo
+databaseUser=${databaseUser}
+databasePass=${databasePass}
+databaseName=${databaseName}
+uploadsPath=${uploadsPath} # Do not remove the trailing slash
+backupFolder=${backupFolder} # Do not remove the trailing slash
+projectName=${projectName}
+EOL
+
 # Prepare new directories for the backup
 mkdir -p ${backupFolder}
 mkdir -p ${backupFolder}databases
@@ -47,20 +56,9 @@ touch ${backupFolder}databases/db-daily.sql.gz
 touch ${backupFolder}databases/db-weekly.sql.gz
 touch ${backupFolder}databases/db-monthly.sql.gz
 
-# dump command choice
-if [ $databaseType = "mysql" ]
-then
-    dumpCommand="mysqldump --user=${databaseUser} --password=${databasePass} ${databaseName} --single-transaction | gzip > ${backupFolder}databases/db-\${1}.sql.gz"
-elif [ $databaseType = "mongo" ]
-then
-    dumpCommand="mongodump --username ${databaseUser} --password ${databasePass} --db ${databaseName} --out ${backupFolder}databases/db-${1}"
-else
-    echo "The database ${databaseType} is not a valid choice"
-    exit 1
-fi
 
 # Install tools
-apt-get update && apt-get install curl unzip -y && curl -O http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
+apt-get update && apt-get install curl unzip -y && curl -O http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && rm rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
 
 
 # Logrotate configuration
@@ -101,7 +99,19 @@ cat > ${binFolder}backup.sh << EOL
 
 
 # Sauvergarde de la base de donnée
-${dumpCommand}
+# dump command choice
+source ../backup.conf
+if [ \$databaseType = "mysql" ]
+then
+    dumpCommand="mysqldump --user=${databaseUser} --password=${databasePass} ${databaseName} --single-transaction | gzip > ${backupFolder}databases/db-\${1}.sql.gz"
+elif [ $databaseType = "mongo" ]
+then
+    dumpCommand="mongodump --username ${databaseUser} --password ${databasePass} --db ${databaseName} --out ${backupFolder}databases/db-${1}"
+else
+    echo "The database ${databaseType} is not a valid choice"
+    exit 1
+fi
+
 rclone sync ${backupFolder}databases remote:${projectName}-db
 
 

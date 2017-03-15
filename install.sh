@@ -13,6 +13,25 @@ touch ${backupFolder}databases/db-daily.sql.gz
 touch ${backupFolder}databases/db-weekly.sql.gz
 touch ${backupFolder}databases/db-monthly.sql.gz
 
+# uploadsPath validation
+if ! [ -d $uploadsPath ] || ! [ -x $uploadsPath ];
+then
+    echo "UploadsPath \"${uploadsPath}\" : No such file or directory";
+    exit 1;
+fi
+
+# dump command choice
+if [ $databaseType = "mysql" ]
+then
+    dumpCommand="mysqldump --user=${databaseUser} --password=${databasePass} ${databaseName} --single-transaction | gzip > ${backupFolder}databases/db-\${1}.sql.gz"
+elif [ $databaseType = "mongo" ]
+then
+    dumpCommand="mongodump --username ${databaseUser} --password ${databasePass} --db ${databaseName} --out ${backupFolder}databases/db-${1}"
+else
+    echo "The database ${databaseType} is not a valid choice"
+    exit 1
+fi
+
 
 # Install tools
 apt-get update && apt-get install curl unzip -y && curl -O http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
@@ -51,17 +70,12 @@ ${backupFolder}databases/db-monthly.sql.gz {
 }
 EOL
 
-
-# backup.sh
-# FOR MONGO : mongodump --username ${databaseUser} --password ${databasePass} --db ${databaseName} --out ${backupFolder}/databases/db-${1}
-# FOR MYSQL : mysqldump --user=${databaseUser} --password=${databasePass} ${databaseName} --single-transaction | gzip > ${backupFolder}/databases/db-${1}.sql.gz
-
 cat > ${backupFolder}backup.sh << EOL
 #!/bin/bash
 
 
 # Sauvergarde de la base de donnée
-mysqldump --user=${databaseUser} --password=${databasePass} ${databaseName} --single-transaction | gzip > ${backupFolder}databases/db-\${1}.sql.gz
+${dumpCommand}
 rclone sync ${backupFolder}databases remote:${projectName}-db
 
 

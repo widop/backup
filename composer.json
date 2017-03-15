@@ -1,9 +1,4 @@
 {
   "name": "widop/backup",
-  "description": "Database and files backup script with logrotate and rclone",
-  "scripts": {
-    "post-install-cmd": [
-      "./install.sh"
-    ]
-  }
+  "description": "Database and files backup script with logrotate and rclone"
 }

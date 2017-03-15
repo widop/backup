@@ -1,10 +1,44 @@
 #!/bin/bash
 
 # You should not change these variables
-logrorateFolder='/etc/logrotate.d/'
+logrorateFolder="/etc/logrotate.d/"
+binFolder="../../../bin/"
+
+echo "Project name : "
+read projectName
 
 # Load the backup configuration file
-source backup.conf
+#source backup.conf
+databaseType=null
+while ! [ $databaseType = "mysql" ] && ! [ $databaseType = "mongo" ];
+do
+    echo "Database type (mysql|mongo) : ";
+    read databaseType;
+done
+
+echo "Database user : "
+read databaseUser;
+
+echo "Database password : "
+read databasePass;
+
+echo "Database name : "
+read databaseName;
+
+# uploadsPath
+uploadsPath=null
+while ! [ -d $uploadsPath ] || ! [ -x $uploadsPath ];
+do
+    if [ $uploadsPath != null ]
+    then
+        echo "UploadsPath \"${uploadsPath}\" : No such file or directory";
+    fi
+    echo "Uploads path (use shared path and don't forget the trailing slash) : "
+    read uploadsPath;
+done
+
+echo "Backup folder (don't forget the trailing slash) : "
+read backupFolder;
 
 # Prepare new directories for the backup
 mkdir -p ${backupFolder}
@@ -12,13 +46,6 @@ mkdir -p ${backupFolder}databases
 touch ${backupFolder}databases/db-daily.sql.gz
 touch ${backupFolder}databases/db-weekly.sql.gz
 touch ${backupFolder}databases/db-monthly.sql.gz
-
-# uploadsPath validation
-if ! [ -d $uploadsPath ] || ! [ -x $uploadsPath ];
-then
-    echo "UploadsPath \"${uploadsPath}\" : No such file or directory";
-    exit 1;
-fi
 
 # dump command choice
 if [ $databaseType = "mysql" ]
@@ -32,7 +59,6 @@ else
     exit 1
 fi
 
-
 # Install tools
 apt-get update && apt-get install curl unzip -y && curl -O http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
 
@@ -45,7 +71,7 @@ ${backupFolder}databases/db-daily.sql.gz {
     nocompress
     create 640 root adm
     postrotate
-       ${backupFolder}backup.sh daily
+       ${binFolder}backup.sh daily
     endscript
 }
 
@@ -55,7 +81,7 @@ ${backupFolder}databases/db-weekly.sql.gz {
     nocompress
     create 640 root adm
     postrotate
-        ${backupFolder}backup.sh weekly
+        ${binFolder}backup.sh weekly
     endscript
 }
 
@@ -65,12 +91,12 @@ ${backupFolder}databases/db-monthly.sql.gz {
     nocompress
     create 640 root adm
     postrotate
-        ${backupFolder}backup.sh monthly
+        ${binFolder}backup.sh monthly
     endscript
 }
 EOL
 
-cat > ${backupFolder}backup.sh << EOL
+cat > ${binFolder}backup.sh << EOL
 #!/bin/bash
 
 
@@ -84,7 +110,7 @@ rclone sync ${backupFolder}databases remote:${projectName}-db
 rclone sync ${uploadsPath} remote:${projectName}-uploads
 EOL
 
-chmod +x ${backupFolder}backup.sh
+chmod +x ${binFolder}backup.sh
 
 echo "Backup OK"
 exit 0

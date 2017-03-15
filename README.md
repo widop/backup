@@ -13,7 +13,7 @@ Database and files backup script with logrotate and rclone.
    ```
    "scripts": {
        "post-install-cmd": [
-           "vendor/widop/backup/install.sh"
+           "vendor/widop/backup/preinstall.sh"
        ]
    }
    ```

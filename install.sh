@@ -2,7 +2,6 @@
 
 # You should not change these variables
 logrorateFolder="/etc/logrotate.d/"
-binFolder=""
 
 echo "Project name : "
 read projectName
@@ -59,9 +58,9 @@ touch ${backupFolder}databases/db-monthly.sql.gz
 
 
 # Install tools
-apt-get update && apt-get install curl unzip -y && curl -O http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && rm rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
+apt-get update && apt-get install curl unzip -y && apt-get install realpath && curl -O http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && rm rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
 
-
+binFolder=$(dirname $(realpath -s $0))/
 # Logrotate configuration
 cat > ${logrorateFolder}widop-backup << EOL
 ${backupFolder}databases/db-daily.sql.gz {

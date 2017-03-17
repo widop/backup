@@ -3,7 +3,7 @@
 
 # Sauvergarde de la base de donnée
 # dump command choice
-source ../../backup.conf
+source backupFile
 if [ $databaseType = "mysql" ]
 then
     dumpCommand="mysqldump --user=${databaseUser} --password=${databasePass} ${databaseName} --single-transaction | gzip > ${backupFolder}databases/db-${1}.sql.gz"

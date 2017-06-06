@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source vendor/widop/backup/functions.sh
+#source vendor/widop/backup/functions.sh
 source functions.sh
 
 # Check if user is root
@@ -56,7 +56,7 @@ touch ${backupFolder}databases/db-monthly.sql.gz
 sed  -i "/backupFile/c\source ${currentPath}backup.conf" ${currentPath}/bin/backup
 
 # Install tools
-apt-get update && apt-get install curl unzip -y && curl -O http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && rm rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
+apt-get update && apt-get install curl unzip -y && curl -O -L http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && rm rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
 
 # Logrotate configuration
 cat > ${logrorateFolder}${projectName}widop-backup << EOL

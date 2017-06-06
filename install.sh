@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#source vendor/widop/backup/functions.sh
+source vendor/widop/backup/functions.sh
 source functions.sh
 
 # Check if user is root

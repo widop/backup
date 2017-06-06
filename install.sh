@@ -1,7 +1,10 @@
 #!/bin/bash
 
-source vendor/widop/backup/functions.sh
-source functions.sh
+if [ ! -f functions.sh ]; then
+    source vendor/widop/backup/functions.sh
+else
+    source functions.sh
+fi
 
 # Check if user is root
 checkUserRoot
@@ -27,24 +30,12 @@ echo "Database name : "
 read databaseName
 
 uploadsPath=`askRepository "Uploads path (use shared upload repository)"`
-currentPath=`askRepository "Current path"`
+currentPath=`askRepository "Current path (Should be /blabla/project-name/current/)"`
 binPath=`askBinPath $currentPath`
 
 echo "Backup folder : "
 read backupFolder;
 backupFolder=$(trailingSlash $backupFolder)
-
-cat > ${currentPath}backup.conf << EOL
-projectName=${projectName}
-databaseType=${databaseType} # mysql|mongo
-databaseUser=${databaseUser}
-databasePass=${databasePass}
-databaseName=${databaseName}
-uploadsPath=${uploadsPath} # Do not remove the trailing slash
-backupFolder=${backupFolder} # Update this line needs to reinstall backup logrotate, do not remove the trailing slash
-currentFolder=${currentPath} # Update this line needs to reinstall backup logrotate, do not remove the trailing slash
-binFolder=${binPath} # Update this line needs to reinstall backup logrotate, do not remove the trailing slash
-EOL
 
 # Prepare new directories for the backup
 mkdir -p ${backupFolder}
@@ -53,13 +44,25 @@ touch ${backupFolder}databases/db-daily.sql.gz
 touch ${backupFolder}databases/db-weekly.sql.gz
 touch ${backupFolder}databases/db-monthly.sql.gz
 
-sed  -i "/backupFile/c\source ${currentPath}backup.conf" ${currentPath}/bin/backup
+cat > ${currentFolder}backup.conf << EOL
+projectName=${projectName}
+databaseType=${databaseType} # mysql|mongo
+databaseUser=${databaseUser}
+databasePass='${databasePass}'
+databaseName=${databaseName}
+uploadsPath=${uploadsPath} # Do not remove the trailing slash
+backupFolder=${backupFolder} # Update this line needs to reinstall backup logrotate, do not remove the trailing slash
+currentFolder=${currentPath} # Update this line needs to reinstall backup logrotate, do not remove the trailing slash
+binFolder=${binPath} # Update this line needs to reinstall backup logrotate, do not remove the trailing slash
+EOL
+
+sed  -i "/backupFile/c\source ${currentFolder}backup.conf" ${currentPath}/bin/backup
 
 # Install tools
 apt-get update && apt-get install curl unzip -y && curl -O -L http://downloads.rclone.org/rclone-current-linux-amd64.zip && unzip rclone-current-linux-amd64.zip && rm rclone-current-linux-amd64.zip && cd rclone-*-linux-amd64 && cp rclone /usr/sbin/ && chown root:root /usr/sbin/rclone && chmod 755 /usr/sbin/rclone && rclone config
 
 # Logrotate configuration
-cat > ${logrorateFolder}${projectName}widop-backup << EOL
+cat > ${logrorateFolder}${projectName}-widop-backup << EOL
 ${backupFolder}databases/db-daily.sql.gz {
     daily
     rotate 7

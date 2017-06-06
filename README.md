@@ -6,7 +6,7 @@ Database and files backup script with logrotate and rclone.
 1. Add the package require 'widop/backup' to your `composer.json`
    ```    
        "require": {
-           "widop/backup": "dev-develop"
+           "widop/backup": "dev-master"
        },
    ```
 1. Add this post install script to your `composer.json` :

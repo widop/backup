@@ -15,10 +15,11 @@ else
     exit 1
 fi
 
+eval $dumpCommand
 rclone sync ${backupFolder}databases remote:${projectName}-db
 
 
 # Dupliquer cette ligne pour sauvegarder d'autres dossiers. Et ajouter un chiffre pour chaque dossier après uploads
 # Exemple : rclone sync /mon/dossier remote:\${projectName}-uploads2
 rclone sync ${uploadsPath} remote:${projectName}-uploads
-EOL
+
